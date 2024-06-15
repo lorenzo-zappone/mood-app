@@ -1,6 +1,9 @@
 import streamlit as st
 from datetime import date
+import pandas as pd
+import altair as alt
 
+# Title
 st.title("Daily Mood Tracker")
 
 # List of mood options
@@ -20,5 +23,30 @@ if st.button("Log Mood"):
 # Display the mood log
 st.write("Mood Log:")
 if "moods" in st.session_state:
-    for entry in st.session_state["moods"]:
-        st.write(f"{entry['date']}: {entry['mood']} - {entry['note']}")
+    df = pd.DataFrame(st.session_state["moods"])
+    st.write(df)
+
+    # Filter by date
+    st.subheader("Filter by Date")
+    start_date = st.date_input("Start date", min_value=df['date'].min(), value=df['date'].min())
+    end_date = st.date_input("End date", min_value=df['date'].min(), value=df['date'].max())
+    filtered_df = df[(df['date'] >= start_date) & (df['date'] <= end_date)]
+    st.write(filtered_df)
+
+    # Export to CSV
+    st.subheader("Export Log")
+    if st.button("Export to CSV"):
+        filtered_df.to_csv('mood_log.csv', index=False)
+        st.success("Log exported to mood_log.csv")
+
+    # Visualize mood trends
+    st.subheader("Mood Trends")
+    mood_counts = filtered_df['mood'].value_counts().reset_index()
+    mood_counts.columns = ['mood', 'count']
+    chart = alt.Chart(mood_counts).mark_bar().encode(
+        x='mood',
+        y='count'
+    )
+    st.altair_chart(chart, use_container_width=True)
+else:
+    st.write("No moods logged yet.")
