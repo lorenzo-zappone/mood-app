@@ -3,6 +3,8 @@ from datetime import date
 import pandas as pd
 import altair as alt
 import os
+import sys
+sys.path.insert(0, 'db\database.py')
 from dotenv import load_dotenv
 
 from streamlit_oauth import OAuth2Component
