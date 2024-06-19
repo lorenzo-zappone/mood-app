@@ -105,11 +105,10 @@ else:
                 alt.Size('count:Q',
                          legend=None),
                 color='mood:N',
-                tooltip=['mood', 'count'],
-                angle='count'
+                tooltip=['mood', 'count']
             ).properties(
-                width=800,
-                height=600
+                width=600,
+                height=300
             )
             st.altair_chart(chart)
         else:
