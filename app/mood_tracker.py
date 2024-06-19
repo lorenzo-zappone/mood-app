@@ -90,9 +90,6 @@ else:
                 y='count:Q',
                 color='Mood:N',
                 tooltip=['Date', 'Mood', 'count']
-            ).properties(
-                width=800,
-                height=400
             )
 
             st.altair_chart(trend_chart, use_container_width=True)
