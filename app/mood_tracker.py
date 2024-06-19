@@ -75,13 +75,21 @@ else:
 
             st.write(df)
 
-            # Filter by date
+            # Visualize mood trends
             st.subheader("Mood Trends by Date")
-            start_date_selected = st.date_input("Start date", min_value=df['Date'].min(), value=df['Date'].min())
-            end_date_selected = st.date_input("End date", min_value=df['Date'].min(), value=df['Date'].max())
+            mood_counts_by_date = filtered_df.groupby(['Date', 'Mood']).size().reset_index(name='count')
 
-            filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
-            st.write(filtered_df)
+            trend_chart = alt.Chart(mood_counts_by_date).mark_bar().encode(
+                x='Date:T',
+                y='count:Q',
+                color='Mood:N',
+                tooltip=['Date', 'Mood', 'count']
+            ).properties(
+                width=800,
+                height=400
+            )
+
+            st.altair_chart(trend_chart, use_container_width=True)
 
             # Visualize mood trends
             st.subheader("Mood Counts")
