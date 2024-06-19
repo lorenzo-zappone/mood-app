@@ -83,6 +83,10 @@ else:
             start_date_selected = st.date_input("Start date", min_value=start_date, value=start_date)
             end_date_selected = st.date_input("End date", min_value=start_date, value=end_date)
 
+            # Convert start_date_selected and end_date_selected back to date type
+            start_date_selected = date(start_date_selected.year, start_date_selected.month, start_date_selected.day)
+            end_date_selected = date(end_date_selected.year, end_date_selected.month, end_date_selected.day)
+
             filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
             st.write(filtered_df)
 
