@@ -21,16 +21,6 @@ CLIENT_SECRET = st.secrets["oauth"]["CLIENT_SECRET"]
 REDIRECT_URI = st.secrets["oauth"]["REDIRECT_URI"]
 SCOPE = st.secrets["oauth"]["SCOPE"]
 
-# Debug prints
-print("AUTHORIZE_URL:", AUTHORIZE_URL)
-print("TOKEN_URL:", TOKEN_URL)
-print("REFRESH_TOKEN_URL:", REFRESH_TOKEN_URL)
-print("REVOKE_TOKEN_URL:", REVOKE_TOKEN_URL)
-print("CLIENT_ID:", CLIENT_ID)
-print("CLIENT_SECRET:", CLIENT_SECRET)
-print("REDIRECT_URI:", REDIRECT_URI)
-print("SCOPE:", SCOPE)
-
 # Ensure SCOPE is not None
 if SCOPE is None:
     st.error("SCOPE environment variable is not set. Please check your .env file.")
