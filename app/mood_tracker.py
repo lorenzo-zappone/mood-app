@@ -69,23 +69,16 @@ else:
         user_logs = get_mood_logs(username)
         if user_logs:
             df = pd.DataFrame(user_logs, columns=["Date", "Mood", "Note"])
+
+            # Convert 'Date' column to datetime
+            df['Date'] = pd.to_datetime(df['Date'])
+
             st.write(df)
 
             # Filter by date
             st.subheader("Filter by Date")
-            start_date_raw = df['Date'].min()
-            end_date_raw = df['Date'].max()
-
-            # Convert raw date values to date type
-            start_date = date.fromisoformat(start_date_raw)
-            end_date = date.fromisoformat(end_date_raw)
-
-            start_date_selected = st.date_input("Start date", min_value=start_date, value=start_date)
-            end_date_selected = st.date_input("End date", min_value=start_date, value=end_date)
-
-            # Convert start_date_selected and end_date_selected back to date type
-            start_date_selected = date(start_date_selected.year, start_date_selected.month, start_date_selected.day)
-            end_date_selected = date(end_date_selected.year, end_date_selected.month, end_date_selected.day)
+            start_date_selected = st.date_input("Start date", min_value=df['Date'].min(), value=df['Date'].min())
+            end_date_selected = st.date_input("End date", min_value=df['Date'].min(), value=df['Date'].max())
 
             filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
             st.write(filtered_df)
