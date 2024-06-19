@@ -89,14 +89,28 @@ else:
                 filtered_df.to_csv(f'{username}_mood_log.csv', index=False)
                 st.success(f"Log exported to {username}_mood_log.csv")
 
-            # Visualize mood trends
-            st.subheader("Mood Trends")
+            # Visualize mood distribution
+            st.subheader("Mood Distribution")
             mood_counts = filtered_df['Mood'].value_counts().reset_index()
             mood_counts.columns = ['mood', 'count']
+
             chart = alt.Chart(mood_counts).mark_bar().encode(
                 x='mood',
                 y='count'
             )
             st.altair_chart(chart, use_container_width=True)
+
+            # Pie chart for mood distribution
+            st.subheader("Mood Distribution (Pie Chart)")
+            chart = alt.Chart(mood_counts).mark_circle().encode(
+                alt.Size('count:Q',
+                         legend=None),
+                color='mood:N',
+                tooltip=['mood', 'count']
+            ).properties(
+                width=600,
+                height=300
+            )
+            st.altair_chart(chart)
         else:
             st.write("No moods logged yet.")
