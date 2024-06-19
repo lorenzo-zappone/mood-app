@@ -71,7 +71,7 @@ else:
             df = pd.DataFrame(user_logs, columns=["Date", "Mood", "Note"])
 
             # Convert 'Date' column to datetime
-            df['Date'] = pd.to_datetime(df['Date'])
+            df['Date'] = pd.to_datetime(df['Date']).dt.date
 
             st.write(df)
 
