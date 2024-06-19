@@ -41,13 +41,14 @@ else:
         if result and 'token' in result:
             # If authorization successful, save token in session state
             st.session_state.token = result.get('token')
-            st.session_state.user_info = oauth2.get_user_info(st.session_state.token)
+            user_info = oauth2.get_user_info(result.get('token'))
+            st.session_state.user_info = user_info
             st.rerun()
     else:
         # If token exists in session state, show the token
         token = st.session_state['token']
-        user_info = st.session_state.get('user_info', oauth2.get_user_info(token))
-        username = user_info["email"]
+        user_info = st.session_state.get('user_info', {})
+        username = user_info.get("email", "")
 
         st.sidebar.write(f"Welcome, {username}")
 
