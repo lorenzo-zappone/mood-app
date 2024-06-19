@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 from streamlit_oauth import OAuth2Component
-from database import create_table, add_mood_log, get_mood_logs
+from db.database import create_table, add_mood_log, get_mood_logs
 
 # Load environment variables from .env file
 load_dotenv()
