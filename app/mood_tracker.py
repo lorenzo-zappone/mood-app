@@ -32,7 +32,7 @@ else:
     # Initialize the database
     create_table()
 
-    st.title("Daily Mood Tracker with Google Login")
+    st.title("Daily Mood Tracker")
 
     # Check if token exists in session state
     if 'token' not in st.session_state:
