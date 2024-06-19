@@ -12,14 +12,14 @@ from db.database import create_table, add_mood_log, get_mood_logs
 load_dotenv()
 
 # Set environment variables
-AUTHORIZE_URL = os.environ.get('AUTHORIZE_URL')
-TOKEN_URL = os.environ.get('TOKEN_URL')
-REFRESH_TOKEN_URL = os.environ.get('REFRESH_TOKEN_URL')
-REVOKE_TOKEN_URL = os.environ.get('REVOKE_TOKEN_URL')
-CLIENT_ID = os.environ.get('CLIENT_ID')
-CLIENT_SECRET = os.environ.get('CLIENT_SECRET')
-REDIRECT_URI = os.environ.get('REDIRECT_URI')
-SCOPE = os.environ.get('SCOPE')
+AUTHORIZE_URL = st.secrets["oauth"]["AUTHORIZE_URL"]
+TOKEN_URL = st.secrets["oauth"]["TOKEN_URL"]
+REFRESH_TOKEN_URL = st.secrets["oauth"]["REFRESH_TOKEN_URL"]
+REVOKE_TOKEN_URL = st.secrets["oauth"]["REVOKE_TOKEN_URL"]
+CLIENT_ID = st.secrets["oauth"]["CLIENT_ID"]
+CLIENT_SECRET = st.secrets["oauth"]["CLIENT_SECRET"]
+REDIRECT_URI = st.secrets["oauth"]["REDIRECT_URI"]
+SCOPE = st.secrets["oauth"]["SCOPE"]
 
 # Debug prints
 print("AUTHORIZE_URL:", AUTHORIZE_URL)
