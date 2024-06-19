@@ -98,5 +98,18 @@ else:
                 y='count'
             )
             st.altair_chart(chart, use_container_width=True)
+
+            # Pie chart for mood distribution
+            st.subheader("Mood Distribution (Pie Chart)")
+            chart = alt.Chart(mood_counts).mark_circle().encode(
+                alt.Size('count:Q',
+                         legend=None),
+                color='mood:N',
+                tooltip=['mood', 'count']
+            ).properties(
+                width=600,
+                height=300
+            )
+            st.altair_chart(chart)
         else:
             st.write("No moods logged yet.")
