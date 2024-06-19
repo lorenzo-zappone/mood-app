@@ -76,21 +76,15 @@ else:
             st.write(df)
 
             # Filter by date
-            st.subheader("Filter by Date")
+            st.subheader("Mood Trends by Date")
             start_date_selected = st.date_input("Start date", min_value=df['Date'].min(), value=df['Date'].min())
             end_date_selected = st.date_input("End date", min_value=df['Date'].min(), value=df['Date'].max())
 
             filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
             st.write(filtered_df)
 
-            # Export to CSV
-            st.subheader("Export Log")
-            if st.button("Export to CSV"):
-                filtered_df.to_csv(f'{username}_mood_log.csv', index=False)
-                st.success(f"Log exported to {username}_mood_log.csv")
-
             # Visualize mood trends
-            st.subheader("Mood Trends")
+            st.subheader("Mood Counts")
             mood_counts = filtered_df['Mood'].value_counts().reset_index()
             mood_counts.columns = ['mood', 'count']
             chart = alt.Chart(mood_counts).mark_bar().encode(
@@ -110,5 +104,12 @@ else:
                 height=400
             )
             st.altair_chart(pie_chart)
+
+            # Export to CSV
+            st.subheader("Export Log")
+            if st.button("Export to CSV"):
+                filtered_df.to_csv(f'{username}_mood_log.csv', index=False)
+                st.success(f"Log exported to {username}_mood_log.csv")
+
         else:
             st.write("No moods logged yet.")
