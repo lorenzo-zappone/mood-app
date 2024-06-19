@@ -81,10 +81,8 @@ else:
             end_date_selected = st.date_input("End date", min_value=df['Date'].min(), value=df['Date'].max())
 
             filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
-            st.write(filtered_df)
 
             # Visualize mood trends
-            st.subheader("Mood Trends by Date")
             mood_counts_by_date = filtered_df.groupby(['Date', 'Mood']).size().reset_index(name='count')
 
             trend_chart = alt.Chart(mood_counts_by_date).mark_bar().encode(
