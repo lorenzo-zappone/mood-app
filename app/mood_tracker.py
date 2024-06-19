@@ -41,14 +41,13 @@ else:
         if result and 'token' in result:
             # If authorization successful, save token in session state
             st.session_state.token = result.get('token')
-            user_info = oauth2.get_user_info(result.get('token'))
-            st.session_state.user_info = user_info
+            st.session_state.user_info = oauth2.get_user_info(st.session_state.token)
             st.rerun()
     else:
         # If token exists in session state, show the token
         token = st.session_state['token']
-        user_info = st.session_state.get('user_info', {})
-        username = user_info.get("email", "")
+        user_info = st.session_state.get('user_info', oauth2.get_user_info(token))
+        username = user_info["email"]
 
         st.sidebar.write(f"Welcome, {username}")
 
@@ -73,9 +72,17 @@ else:
 
             # Filter by date
             st.subheader("Filter by Date")
-            start_date = st.date_input("Start date", min_value=df['Date'].min(), value=df['Date'].min())
-            end_date = st.date_input("End date", min_value=df['Date'].min(), value=df['Date'].max())
-            filtered_df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
+            start_date_raw = df['Date'].min()
+            end_date_raw = df['Date'].max()
+
+            # Convert raw date values to date type
+            start_date = date.fromisoformat(start_date_raw)
+            end_date = date.fromisoformat(end_date_raw)
+
+            start_date_selected = st.date_input("Start date", min_value=start_date, value=start_date)
+            end_date_selected = st.date_input("End date", min_value=start_date, value=end_date)
+
+            filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
             st.write(filtered_df)
 
             # Export to CSV
