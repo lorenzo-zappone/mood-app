@@ -25,16 +25,17 @@ SCOPE = st.secrets["oauth"]["SCOPE"]
 if SCOPE is None:
     st.error("SCOPE environment variable is not set. Please check your .env file.")
     st.stop()
-else:
-    # Create OAuth2Component instance
-    oauth2 = OAuth2Component(CLIENT_ID, CLIENT_SECRET, AUTHORIZE_URL, TOKEN_URL, REFRESH_TOKEN_URL, REVOKE_TOKEN_URL)
 
-    # Initialize the database
-    create_table()
+# Create OAuth2Component instance
+oauth2 = OAuth2Component(CLIENT_ID, CLIENT_SECRET, AUTHORIZE_URL, TOKEN_URL, REFRESH_TOKEN_URL, REVOKE_TOKEN_URL)
 
-    st.title("Daily Mood Tracker")
+# Initialize the database
+create_table()
 
-    # Check if token exists in session state
+st.title("Daily Mood Tracker")
+
+def authorize_user():
+    """Authorize the user and handle token retrieval and refresh."""
     if 'token' not in st.session_state:
         # If not, show authorize button
         result = oauth2.authorize_button("Authorize", REDIRECT_URI, SCOPE)
@@ -45,82 +46,76 @@ else:
             st.session_state.user_info = user_info
             st.rerun()
     else:
-        # If token exists in session state, show the token
+        # If token exists in session state, check if it's expired
         token = st.session_state['token']
-        user_info = st.session_state.get('user_info', {})
-        username = user_info.get("email", "")
+        if oauth2.is_token_expired(token):
+            # Attempt to refresh the token
+            new_token = oauth2.refresh_token(token)
+            if new_token:
+                st.session_state.token = new_token
+                user_info = oauth2.get_user_info(new_token)
+                st.session_state.user_info = user_info
+            else:
+                # If refresh failed, clear session and reauthorize
+                st.session_state.clear()
+                st.error("Session expired. Please reauthorize.")
+                st.experimental_rerun()
 
-        st.sidebar.write(f"Welcome, {username}")
+authorize_user()
 
-        # List of mood options
-        mood_options = ["Happy", "Sad", "Neutral", "Excited", "Angry"]
+if 'user_info' in st.session_state:
+    user_info = st.session_state['user_info']
+    username = user_info.get("email", "")
 
-        # Input for mood and note
-        mood = st.selectbox("How are you feeling today?", mood_options)
-        note = st.text_area("Add a note (optional)")
+    st.sidebar.write(f"Welcome, {username}")
 
-        # Button to log the mood
-        if st.button("Log Mood"):
-            add_mood_log(username, mood, note)
-            st.success("Mood logged!")
+    # List of mood options
+    mood_options = ["Happy", "Sad", "Neutral", "Excited", "Angry"]
 
-        # Display the mood log
-        st.write("Mood Log:")
-        user_logs = get_mood_logs(username)
-        if user_logs:
-            df = pd.DataFrame(user_logs, columns=["Date", "Mood", "Note"])
+    # Input for mood and note
+    mood = st.selectbox("How are you feeling today?", mood_options)
+    note = st.text_area("Add a note (optional)")
 
-            # Convert 'Date' column to datetime
-            df['Date'] = pd.to_datetime(df['Date']).dt.date
+    # Button to log the mood
+    if st.button("Log Mood"):
+        add_mood_log(username, mood, note)  # Pass username to log mood
+        st.success("Mood logged!")
 
-            st.write(df)
+    # Display the mood log
+    st.write("Mood Log:")
+    user_logs = get_mood_logs(username)  # Retrieve logs for the specific user
+    if user_logs:
+        df = pd.DataFrame(user_logs, columns=["Date", "Mood", "Note"])
 
-            # Filter by date
-            st.subheader("Mood Trends by Date")
-            start_date_selected = st.date_input("Start date", min_value=df['Date'].min(), value=df['Date'].min())
-            end_date_selected = st.date_input("End date", min_value=df['Date'].min(), value=df['Date'].max())
+        # Convert 'Date' column to datetime
+        df['Date'] = pd.to_datetime(df['Date']).dt.date
 
-            filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
+        st.write(df)
 
-            # Visualize mood trends
-            mood_counts_by_date = filtered_df.groupby(['Date', 'Mood']).size().reset_index(name='count')
+        # Filter by date
+        st.subheader("Mood Trends by Date")
+        start_date_selected = st.date_input("Start date", min_value=df['Date'].min(), value=df['Date'].min())
+        end_date_selected = st.date_input("End date", min_value=df['Date'].min(), value=df['Date'].max())
 
-            trend_chart = alt.Chart(mood_counts_by_date).mark_bar().encode(
-                x='Date:T',
-                y='count:Q',
-                color='Mood:N',
-                tooltip=['Date', 'Mood', 'count']
-            )
+        filtered_df = df[(df['Date'] >= start_date_selected) & (df['Date'] <= end_date_selected)]
+        st.write(filtered_df)
 
-            st.altair_chart(trend_chart, use_container_width=True)
+        # Visualize mood trends
+        st.subheader("Mood Trends by Date")
+        mood_counts_by_date = filtered_df.groupby(['Date', 'Mood']).size().reset_index(name='count')
 
-            # Visualize mood trends
-            st.subheader("Mood Counts")
-            mood_counts = filtered_df['Mood'].value_counts().reset_index()
-            mood_counts.columns = ['mood', 'count']
-            chart = alt.Chart(mood_counts).mark_bar().encode(
-                x='mood',
-                y='count'
-            )
-            st.altair_chart(chart, use_container_width=True)
+        trend_chart = alt.Chart(mood_counts_by_date).mark_bar().encode(
+            x=alt.X('Date:T', axis=alt.Axis(title='Date')),
+            y=alt.Y('count:Q', axis=alt.Axis(title='Count')),
+            color=alt.Color('Mood:N', legend=alt.Legend(title="Mood")),
+            tooltip=['Date:T', 'Mood:N', 'count:Q']
+        ).properties(
+            width=800,
+            height=400
+        )
 
-            # Pie chart for mood distribution
-            st.subheader("Mood Distribution")
-            pie_chart = alt.Chart(mood_counts).mark_arc().encode(
-                theta=alt.Theta(field="count", type="quantitative"),
-                color=alt.Color(field="mood", type="nominal"),
-                tooltip=['mood', 'count']
-            ).properties(
-                width=600,
-                height=400
-            )
-            st.altair_chart(pie_chart)
-
-            # Export to CSV
-            st.subheader("Export Log")
-            if st.button("Export to CSV"):
-                filtered_df.to_csv(f'{username}_mood_log.csv', index=False)
-                st.success(f"Log exported to {username}_mood_log.csv")
-
-        else:
-            st.write("No moods logged yet.")
+        st.altair_chart(trend_chart, use_container_width=True)
+    else:
+        st.write("No moods logged yet.")
+else:
+    st.write("Please authorize to use the app.")
