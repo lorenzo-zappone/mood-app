@@ -3,6 +3,7 @@ from datetime import date
 import pandas as pd
 import altair as alt
 import os
+import requests
 from dotenv import load_dotenv
 
 from streamlit_oauth import OAuth2Component
@@ -16,6 +17,7 @@ AUTHORIZE_URL = st.secrets["oauth"]["AUTHORIZE_URL"]
 TOKEN_URL = st.secrets["oauth"]["TOKEN_URL"]
 REFRESH_TOKEN_URL = st.secrets["oauth"]["REFRESH_TOKEN_URL"]
 REVOKE_TOKEN_URL = st.secrets["oauth"]["REVOKE_TOKEN_URL"]
+USER_INFO_URL = st.secrets["oauth"]["USER_INFO_URL"]  # Add the user info endpoint URL
 CLIENT_ID = st.secrets["oauth"]["CLIENT_ID"]
 CLIENT_SECRET = st.secrets["oauth"]["CLIENT_SECRET"]
 REDIRECT_URI = st.secrets["oauth"]["REDIRECT_URI"]
@@ -34,6 +36,17 @@ create_table()
 
 st.title("Daily Mood Tracker")
 
+def fetch_user_info(token):
+    """Fetch user info from the OAuth provider."""
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+    response = requests.get(USER_INFO_URL, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return None
+
 def authorize_user():
     """Authorize the user and handle token retrieval and refresh."""
     if 'token' not in st.session_state:
@@ -42,9 +55,12 @@ def authorize_user():
         if result and 'token' in result:
             # If authorization successful, save token in session state
             st.session_state.token = result.get('token')
-            user_info = oauth2.get_user_info(result.get('token'))
-            st.session_state.user_info = user_info
-            st.rerun()
+            user_info = fetch_user_info(result.get('token'))
+            if user_info:
+                st.session_state.user_info = user_info
+                st.experimental_rerun()
+            else:
+                st.error("Failed to retrieve user information. Please reauthorize.")
     else:
         # If token exists in session state, check if it's expired
         token = st.session_state['token']
@@ -53,8 +69,11 @@ def authorize_user():
             new_token = oauth2.refresh_token(token)
             if new_token:
                 st.session_state.token = new_token
-                user_info = oauth2.get_user_info(new_token)
-                st.session_state.user_info = user_info
+                user_info = fetch_user_info(new_token)
+                if user_info:
+                    st.session_state.user_info = user_info
+                else:
+                    st.error("Failed to retrieve user information after token refresh. Please reauthorize.")
             else:
                 # If refresh failed, clear session and reauthorize
                 st.session_state.clear()
